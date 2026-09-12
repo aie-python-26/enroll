@@ -1,0 +1,69 @@
+name: Enroll
+
+# Self-service enrollment for Classroom 50. A student opens an issue from the
+# "Записаться на курс" form; this workflow invites them into the organization
+# with the classroom team attached (= enrolled), writes their roster row with
+# the section, and answers the issue with the lab0 accept link.
+#
+# Every run processes ALL open enrollment issues, so overlapping runs are
+# cancelled safely: the surviving run picks up whatever is still open.
+
+on:
+  issues:
+    types: [opened]
+  schedule:
+    - cron: "17 * * * *"        # hourly safety net
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only report what would happen"
+        type: boolean
+        default: false
+
+# Edit these three for your course.
+env:
+  CLASSROOM: aie-python-26-autumn
+  ACCEPT_SLUG: lab0
+  DELETE_ISSUES: "false"        # "true": delete processed issues (needs an owner token)
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: enroll
+  cancel-in-progress: true
+
+jobs:
+  enroll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Preferred identity: a GitHub App owned by the organization, so every
+      # invitation and comment comes from "<app>[bot]" and not from a teacher's
+      # personal account. Set the Actions variable BOT_APP_ID and the secret
+      # BOT_PRIVATE_KEY to switch it on; without them the PAT below is used.
+      - name: Mint a GitHub App token
+        id: app
+        if: ${{ vars.BOT_APP_ID != '' }}
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Enroll students from open issues
+        env:
+          # App installation token, else a fine-grained PAT (org resource owner)
+          # with Organization -> Members: RW and Repository -> Contents: RW.
+          ENROLL_TOKEN: ${{ steps.app.outputs.token || secrets.ENROLL_TOKEN }}
+          # Issue replies come from the same identity when the App is in play.
+          GITHUB_TOKEN: ${{ steps.app.outputs.token || secrets.GITHUB_TOKEN }}
+          ORG: ${{ github.repository_owner }}
+          ENROLL_REPO: ${{ github.repository }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: python3 .github/scripts/enroll.py
