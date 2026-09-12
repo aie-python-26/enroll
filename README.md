@@ -31,18 +31,20 @@
 ### Установка
 
 ```sh
-./install.sh <org>
+./install.sh <org> <classroom> [accept-slug]
 ```
 
-Создаёт публичный репозиторий `<org>/enroll` с этими файлами и метками.
-Дальше руками:
+Создаёт публичный репозиторий `<org>/enroll` с этими файлами и метками,
+подставляя классрум и слаг лабы в workflow. Дальше руками:
 
-1. В `.github/workflows/enroll.yaml` поправь `CLASSROOM` и `ACCEPT_SLUG`.
-2. В `.github/ISSUE_TEMPLATE/enroll.yml` впиши свои группы.
-3. Создай fine-grained PAT от владельца организации (Resource owner =
-   организация): **Organization → Members: Read and write**; **Repository
-   `classroom50` → Contents: Read and write**. Положи в секрет `ENROLL_TOKEN`
-   репозитория `enroll`.
+1. В `.github/ISSUE_TEMPLATE/enroll.yml` впиши свои группы.
+3. Дай боту личность. Лучший вариант — GitHub App организации, тогда
+   приглашения и ответы подписаны `<app>[bot]`, а не твоим аккаунтом:
+   см. «От чьего имени работают боты» в README верхнего уровня. Запасной
+   вариант — fine-grained PAT владельца организации (Resource owner =
+   организация, Repository access = All repositories): **Organization →
+   Members: RW**, **Repository → Contents: RW, Issues: RW**. Положи его в
+   секрет `ENROLL_TOKEN` репозитория `enroll`.
 4. Прогони **Actions → Enroll → Run workflow** с `dry_run`, чтобы убедиться,
    что токен читает `classroom.json` и `roster.csv`.
 
