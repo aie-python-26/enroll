@@ -1,0 +1,43 @@
+name: Записаться на курс
+description: Запись в классрум курса. Выбери группу, впиши фамилию и имя.
+title: "Запись на курс"
+labels: ["enroll"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Через несколько минут в этой заявке появится приглашение в организацию курса и ссылка на лабу 0.
+  - type: dropdown
+    id: group
+    attributes:
+      label: Группа
+      description: Твоя учебная группа по расписанию.
+      options:
+        - J3110
+        - J3111
+        - J3112
+        - J3113
+        - J3114
+        - J3115
+        - J3120
+        - J3121
+        - J3122
+        - J3123
+        - J3124
+        - J3125
+    validations:
+      required: true
+  - type: input
+    id: last_name
+    attributes:
+      label: Фамилия
+      placeholder: Иванов
+    validations:
+      required: true
+  - type: input
+    id: first_name
+    attributes:
+      label: Имя
+      placeholder: Иван
+    validations:
+      required: true
